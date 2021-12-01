@@ -18,8 +18,8 @@ cup nomFich
 
 Instrucciones para compilar y ejecutar los ficheros generados por jflex y cup:
 
-javac -cp .:java-cup-11b-runtime-2015.03.26.jar nomFich.java
+javac -cp .:java-cup-11b-runtime.jar nomFich.java
 
-java -cp .:java-cup-11b-runtime-2015.03.26.jar nomFich input.txt
+java -cp .:java-cup-11b-runtime.jar nomFich input.txt
 
 
