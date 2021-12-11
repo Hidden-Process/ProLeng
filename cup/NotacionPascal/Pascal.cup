@@ -1,0 +1,27 @@
+import java_cup.runtime.*;
+
+/* Terminales */ 
+
+terminal             String        INT, DOUBLE, PYC, IDENT;
+
+
+/* No Terminales */
+
+non terminal                       lista, exp, lista_enteros, lista_dobles;
+
+lista         ::= exp:e                          {: System.out.println(e); :}
+                ;
+
+exp           ::= INT    lista_enteros:le PYC    {: RESULT = le; :}
+                | DOUBLE lista_dobles:ld  PYC    {: RESULT = ld; :}
+                ;
+
+lista_enteros ::= IDENT:id lista_enteros:le   {: RESULT = id + ":int; " + le;  :}
+                | IDENT:id                    {: RESULT = id + ":int;";       :}
+                ;
+
+lista_dobles  ::= IDENT:id lista_dobles:ld    {: RESULT = id + ":double; " + ld;  :}
+                | IDENT:id                    {: RESULT = id + ":double;";       :}
+                ;
+
+
