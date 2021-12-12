@@ -1,0 +1,28 @@
+import java_cup.runtime.*;
+
+action code{:
+    int fst, snd;
+    boolean isFib = true;
+:};
+
+terminal Integer NUMERO;
+
+non terminal lista, rec;
+
+lista    ::= NUMERO:n1 NUMERO:n2 {: fst = n1; snd = n2; :} rec
+           ;
+
+rec      ::= NUMERO:n {: 
+           if(fst + snd != n) { isFib = false;     }
+           else               { fst = snd; snd = n;}
+           :} rec
+           ;
+
+rec      ::= {:
+           if(isFib) {System.out.println("SI");}
+           else      {System.out.println("NO");}
+             :}
+           ;
+
+
+
