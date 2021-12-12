@@ -1,0 +1,18 @@
+import java_cup.runtime.*;
+
+terminal                AC, CC, COMA;
+terminal Integer        NUMERO;
+
+non terminal            lista;
+non terminal String     exp;
+
+precedence left COMA;
+
+lista ::= AC exp:e CC         {: System.out.println("["+ e +"]"); :}
+        ;
+
+exp   ::= AC exp:e CC         {: RESULT = e; :}
+        | exp:e1 COMA exp:e2  {: RESULT = e1 + "," + e2; :}
+        | NUMERO:n            {: RESULT = Integer.toString(n); :}  
+        |                     {: RESULT = "NULL"; :}
+        ;
