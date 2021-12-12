@@ -1,0 +1,18 @@
+import java_cup.runtime.*;
+
+terminal                  INT, DOUBLE;
+terminal                  COMA, PYC, DP;
+terminal        String    IDENT;
+             
+non terminal    String    lista, exp, rec;
+
+lista    ::= exp:e                     {: System.out.println(e); :}
+           ;
+
+exp      ::= rec:c DP INT PYC          {: RESULT = "int " + c;    :}
+           | rec:c DP DOUBLE PYC       {: RESULT = "double " + c; :}
+           ;
+
+rec      ::= IDENT:id COMA rec:c       {: RESULT = id + ", " + c; :}
+           | IDENT:id                  {: RESULT = id + ";";      :}
+           ;
