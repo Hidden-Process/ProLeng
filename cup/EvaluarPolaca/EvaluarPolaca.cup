@@ -1,0 +1,26 @@
+import java_cup.runtime.*;
+
+/* Terminales */
+
+terminal                MAS, MENOS, POR, DIV;
+terminal      Integer   NUMERO;
+
+/* No Terminales */
+
+non terminal            linea;
+non terminal  Integer   exp; 
+
+/* Precedencia Operadores */
+
+precedence left MAS, MENOS;
+precedence left POR, DIV;
+
+linea    ::= exp:e                   {: System.out.println(e); :}
+           ;
+
+exp      ::= MAS   exp:e1 exp:e2     {: RESULT = e1 + e2; :}
+           | MENOS exp:e1 exp:e2     {: RESULT = e1 - e2; :}
+           | POR   exp:e1 exp:e2     {: RESULT = e1 * e2; :}
+           | DIV   exp:e1 exp:e2     {: RESULT = e1 / e2; :}
+           | NUMERO:n                {: RESULT = n;       :}
+           ;
