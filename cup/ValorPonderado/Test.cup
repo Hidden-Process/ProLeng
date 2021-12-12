@@ -1,0 +1,18 @@
+import java_cup.runtime.*;
+
+terminal                AC, CC, COMA;
+terminal Integer        NUMERO;
+
+non terminal            lista;
+non terminal Integer    suma;
+
+precedence left COMA;
+
+lista    ::=  AC suma:s CC         {: System.out.println(s); :}
+           ;
+
+suma     ::=  AC suma:s CC         {: RESULT = 2*s;     :}
+           |  suma:s1 COMA suma:s2 {: RESULT = s1 + s2; :}
+           |  NUMERO:n             {: RESULT = n;       :}
+           |                       {: RESULT = 0;       :}
+           ;
