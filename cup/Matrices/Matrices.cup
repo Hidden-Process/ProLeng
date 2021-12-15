@@ -1,0 +1,155 @@
+import java_cup.runtime.*;
+import java.util.ArrayList;
+
+/* Terminales */
+
+terminal           ALL, CLL, AP, CP, AC, CC, COMA, PYC;
+terminal           MAS, MENOS, POR, DIV, ASIG;
+terminal String    IDENT, PRINT;
+terminal String    INVERSA, TRANSPUESTA, ADJUNTA;
+terminal Double    NUMERO;
+
+/* No Terminales */
+
+non terminal                                lista,sent,print;
+non terminal ArrayList<ArrayList<Double>>   exp, matriz, filas, funcion, javaFilas;
+non terminal ArrayList<Double>              fila;
+
+/* Asociatividad */
+
+precedence left     MAS, MENOS, POR, DIV;
+precedence right    ASIG;
+precedence nonassoc COMA;
+
+/* GRAMATICA */
+
+lista         ::= sent
+                | lista sent
+                ;
+
+sent          ::= print
+                | exp
+                ;
+
+print         ::= PRINT AP exp:e CP PYC {: Matrices.print(e); :}
+                ;
+
+exp           ::= matriz:m  
+                {: 
+                try{
+                  if((Matrices.filas(Matrices.toArray(m)) >=1) && (Matrices.columnas(Matrices.toArray(m)) >=1 )){
+                   RESULT = m; 
+                  } else {
+                   System.out.println("Syntax Error: Dimensiones no válidas");
+                }
+                } catch(IndexOutOfBoundsException e){
+                   System.out.println(Matrices.ERROR_FILAS);
+                   System.exit(1);
+                }
+                :}
+
+                | IDENT:id ASIG exp:e PYC {: TablaSimbolos.insertar(id, Matrices.toArray(e)); :}
+                | IDENT:id        {: RESULT = Matrices.toArrayList(TablaSimbolos.buscar(id)); :}
+                | funcion:f   {: RESULT = f; :}
+                | AP exp:e CP {: RESULT = e; :}
+                
+                | exp:e1 MAS exp:e2 
+                {:
+                if ((Matrices.filas(Matrices.toArray(e1)) == (Matrices.filas(Matrices.toArray(e2)))) 
+                && (Matrices.columnas(Matrices.toArray(e1)) == (Matrices.columnas(Matrices.toArray(e2))))) {
+                   RESULT = Matrices.toArrayList(Matrices.suma(Matrices.toArray(e1), Matrices.toArray(e2)));
+                } else {
+                   System.out.println(Matrices.ERROR_SUMA);
+                   System.exit(1);
+                }
+                :}
+
+                | exp:e1 POR exp:e2
+                {:
+                if (Matrices.columnas(Matrices.toArray(e1)) == Matrices.filas(Matrices.toArray(e2))){    
+                   RESULT = Matrices.toArrayList(Matrices.producto(Matrices.toArray(e1), Matrices.toArray(e2)));
+                } else {
+                   System.out.println(Matrices.ERROR_PROD);
+                   System.exit(1);
+                }
+                :}
+                ;
+
+matriz        ::= AC  filas:fs CC     {: RESULT = fs; :}
+                | ALL javaFilas:j CLL {: RESULT = j; :}
+                | AC CC {: System.out.println("Syntax Error: Dimensiones no válidas");  System.exit(1); :}
+                ;
+
+filas         ::= fila:f 
+                {: 
+                ArrayList<ArrayList<Double>> fila = new ArrayList<ArrayList<Double>>(); 
+                fila.add(f);
+                RESULT = fila;
+                :}
+
+                | fila:f PYC filas:fs
+                {:
+                ArrayList<ArrayList<Double>> filas = new ArrayList<ArrayList<Double>>(); 
+                filas.add(f);
+                filas.addAll(fs);
+                RESULT = filas; 
+                :}
+
+                ;
+
+fila          ::= NUMERO:n  
+                {:
+                ArrayList<Double> lista = new ArrayList<Double>();
+                lista.add(n); 
+                RESULT = lista;
+                :}
+
+                | NUMERO:n COMA fila:f 
+                {:
+                ArrayList<Double> lista = new ArrayList<Double>(); 
+                lista.add(n);
+                lista.addAll(f);
+                RESULT = lista;
+                :}
+
+                ;
+            
+funcion       ::= TRANSPUESTA AP exp:e CP 
+                {: RESULT = Matrices.toArrayList(Matrices.transpuesta(Matrices.toArray(e))); :}
+
+                | INVERSA AP exp:e CP
+                {:
+                 if(Matrices.filas(Matrices.toArray(e)) == Matrices.columnas(Matrices.toArray(e))){
+                     RESULT = Matrices.toArrayList(Matrices.inversa(Matrices.toArray(e)));
+                 } else {
+                    System.out.println(Matrices.ERROR_INVERSA);
+                    System.exit(1);
+                 }
+                :}
+
+                | ADJUNTA AP exp:e CP
+                {:
+                 if(Matrices.filas(Matrices.toArray(e)) == Matrices.columnas(Matrices.toArray(e))){
+                     RESULT = Matrices.toArrayList(Matrices.adjunta(Matrices.toArray(e)));
+                  } else {
+                    System.out.println(Matrices.ERROR_ADJUNTA);
+                    System.exit(1);
+                 }
+                :}
+                ;
+
+javaFilas     ::= ALL fila:f CLL
+                {: 
+                ArrayList<ArrayList<Double>> fila = new ArrayList<ArrayList<Double>>(); 
+                fila.add(f);
+                RESULT = fila;
+                :}
+
+                | ALL fila:f CLL COMA javaFilas:j
+                {:
+                ArrayList<ArrayList<Double>> filas = new ArrayList<ArrayList<Double>>(); 
+                filas.add(f);
+                filas.addAll(j);
+                RESULT = filas;
+               :}
+                ;
