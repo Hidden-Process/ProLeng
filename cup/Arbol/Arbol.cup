@@ -1,0 +1,46 @@
+import java_cup.runtime.*;
+import java.util.*;
+
+/* Terminales */
+
+terminal         ALL, CLL, COMA;
+terminal Integer NUMERO;
+
+/* No Terminales */
+
+non terminal Arbol arbol;
+
+/* Gramatica */
+
+arbol ::= NUMERO:n {: Arbol a       = new Arbol(); 
+                     a.raiz         = n;
+                     a.maximo       = n;
+                     a.profundidad  = 1;
+                     a.elementos    = 1;
+                     a.sumaNivel[0] = a.raiz;
+                     a.arbolInverso = n.toString();
+                     a.grafo        = "";
+                     RESULT         = a;
+                  :}
+
+        | ALL arbol:a1 COMA NUMERO:n COMA arbol:a2 CLL 
+                    {: Arbol a        = new Arbol();
+                       a.raiz         = n;
+                       a.maximo       = Math.max(Math.max(a1.maximo, a2.maximo), n);
+                       a.profundidad  = 1 + Math.max(a1.profundidad, a2.profundidad);
+                       a.elementos    = 1 + a1.elementos + a2.elementos;
+                       a.sumaNivel[0] = a.raiz;
+
+                       for(int i=1;i<a.profundidad;i++){
+                           if      (a1.sumaNivel[i-1] == null) a.sumaNivel[i] = a2.sumaNivel[i-1];
+                           else if (a2.sumaNivel[i-1] == null) a.sumaNivel[i] = a1.sumaNivel[i-1];
+                           else     a.sumaNivel[i] = a1.sumaNivel[i-1] + a2.sumaNivel[i-1];
+                       }
+
+                       a.arbolInverso = "{" + a2.arbolInverso + "," + n + "," + a1.arbolInverso + "}";
+                       String grafo   = a.raiz + " -> {" + a1.raiz + "," + a2.raiz + "}; "; 
+                       a.grafo        = a1.grafo + grafo + a2.grafo;
+                       RESULT         = a;
+                    :}
+        ;
+
