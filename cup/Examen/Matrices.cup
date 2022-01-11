@@ -1,0 +1,58 @@
+import java_cup.runtime.*;
+import java.util.ArrayList;
+
+/* terminales */
+
+terminal Double      NUMERO; 
+terminal String      IDENT;
+terminal             MAS, MENOS, POR, DIV, ASIG;
+terminal             ALL, CLL, AP, CP, AC, CC, COMA, PYC;
+terminal             INVERSA, TRANSPUESTA, ADJUNTA, CONCATENA;
+terminal             PRINT;
+terminal double [][] MATRIZ;
+terminal double []   VECTOR;
+
+/* No terminales */
+
+non terminal                                listaSentencia, sentencia;
+non terminal Double                         numero;
+non terminal ArrayList <Double>             vector,listaNumeros,expv;
+non terminal ArrayList <ArrayList<Double>>  matriz,listaVectores,expm;
+
+/* Precedencias */
+
+/* Gramatica */
+
+listaSentencia ::= sentencia PYC {::}
+                 | listaSentencia sentencia PYC {::}
+                 ;
+
+sentencia ::= IDENT:id ASIG matriz:m  {: TablaSimbolos.insertar(id,Matrices.toArray(m));         :}
+            | IDENT:id ASIG vector:v  {: TablaSimbolos.insertarVector(id,Matrices.toVector(v));  :}
+            | PRINT AP expv:v CP      {: Matrices.print(Matrices.toVector(v));                   :}
+            | PRINT AP expm:m CP      {: Matrices.print(Matrices.toArray(m));                    :}
+            ;
+
+expm ::= MATRIZ:m {: RESULT = Matrices.toArrayList(m); :}
+       ;
+
+expv ::= VECTOR:v  {: RESULT = Matrices.toArrayList(v); :}
+       ;
+
+numero ::= MENOS NUMERO:n {: RESULT = -n; :}
+         | NUMERO:n       {: RESULT =  n; :}
+         ;
+
+matriz ::= ALL listaVectores:l CLL {: RESULT = l; :}
+         ;
+
+listaVectores ::= listaVectores:l COMA vector:v {: l.add(v); RESULT = l; :}
+                | vector:v {: ArrayList<ArrayList<Double>> l = new ArrayList(); l.add(v); RESULT = l; :}
+                ;
+
+vector ::= ALL listaNumeros:l CLL {: RESULT = l; :}
+         ;
+
+listaNumeros ::= listaNumeros:l COMA numero:n {: l.add(n); RESULT = l; :}
+               | numero:n {: ArrayList<Double> l = new ArrayList(); l.add(n); RESULT = l; :}
+               ;
