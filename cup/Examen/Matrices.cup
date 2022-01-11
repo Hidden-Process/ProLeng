@@ -21,6 +21,10 @@ non terminal ArrayList <ArrayList<Double>>  matriz,listaVectores,expm;
 
 /* Precedencias */
 
+precedence left     MAS, MENOS, POR, DIV;
+precedence right    ASIG,CONCATENA;
+precedence nonassoc COMA;
+
 /* Gramatica */
 
 listaSentencia ::= sentencia PYC {::}
@@ -33,10 +37,16 @@ sentencia ::= IDENT:id ASIG matriz:m  {: TablaSimbolos.insertar(id,Matrices.toAr
             | PRINT AP expm:m CP      {: Matrices.print(Matrices.toArray(m));                    :}
             ;
 
-expm ::= MATRIZ:m {: RESULT = Matrices.toArrayList(m); :}
+expm ::= MATRIZ:m                  {: RESULT = Matrices.toArrayList(m); :}
+       | expm:m CONCATENA expv:v   {: RESULT = Matrices.toArrayList(Matrices.concatena(Matrices.toArray(m),Matrices.toVector(v))); :}
        ;
 
-expv ::= VECTOR:v  {: RESULT = Matrices.toArrayList(v); :}
+expv ::= VECTOR:v                  {: RESULT = Matrices.toArrayList(v); :}
+       | expv:v1 CONCATENA expv:v2 {: RESULT = Matrices.toArrayList(Matrices.concatena(Matrices.toVector(v1),Matrices.toVector(v2))); :}
+       | numero:n CONCATENA expv:v {: RESULT = Matrices.toArrayList(Matrices.concatena(n,Matrices.toVector(v)));   :}
+       | expv:v CONCATENA numero:n {: RESULT = Matrices.toArrayList(Matrices.concatena(Matrices.toVector(v),n));   :}
+       | expv:v1 MAS expv:v2       {: RESULT = Matrices.toArrayList(Matrices.suma(Matrices.toVector(v1),Matrices.toVector(v2))); :}
+       | numero:n MAS expv:v       {: RESULT = Matrices.toArrayList(Matrices.suma(n,Matrices.toVector(v))); :}
        ;
 
 numero ::= MENOS NUMERO:n {: RESULT = -n; :}
@@ -44,6 +54,7 @@ numero ::= MENOS NUMERO:n {: RESULT = -n; :}
          ;
 
 matriz ::= ALL listaVectores:l CLL {: RESULT = l; :}
+         | ALL listaVectores:l CLL CONCATENA vector:v {: RESULT = Matrices.toArrayList(Matrices.concatena(Matrices.toArray(l),Matrices.toVector(v))); :}
          ;
 
 listaVectores ::= listaVectores:l COMA vector:v {: l.add(v); RESULT = l; :}
@@ -51,6 +62,9 @@ listaVectores ::= listaVectores:l COMA vector:v {: l.add(v); RESULT = l; :}
                 ;
 
 vector ::= ALL listaNumeros:l CLL {: RESULT = l; :}
+         | ALL listaNumeros:l CLL CONCATENA vector:v {: RESULT = Matrices.toArrayList(Matrices.concatena(Matrices.toVector(l),Matrices.toVector(v))); :}
+         | ALL listaNumeros:l CLL CONCATENA numero:n {: RESULT = Matrices.toArrayList(Matrices.concatena(Matrices.toVector(l),n)); :}
+         | numero:n CONCATENA ALL listaNumeros:l CLL {: RESULT = Matrices.toArrayList(Matrices.concatena(n,Matrices.toVector(l))); :}
          ;
 
 listaNumeros ::= listaNumeros:l COMA numero:n {: l.add(n); RESULT = l; :}
