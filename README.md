@@ -22,4 +22,6 @@ javac -cp .:java-cup-11b-runtime.jar nomFich.java
 
 java -cp .:java-cup-11b-runtime.jar nomFich input.txt
 
+## Compilador:
 
+***PLC:*** [PLC] (https://github.com/Hidden-Process/ProLeng/tree/main/compilador/PLC)
