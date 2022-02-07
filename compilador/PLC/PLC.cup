@@ -1,0 +1,91 @@
+import java_cup.runtime.*;
+
+/* Terminales */
+
+terminal            IF, ELSE, WHILE, FOR, DO, PRINT;
+terminal            MAS, MENOS, MUL, DIV, ASIG, UMENOS;
+terminal            LT, LET, GT, GET, EQ, NEQ, NOT, AND, OR;
+terminal            AP,CP,ALL,CLL,PYC;
+terminal String     IDENT, NUMERO;
+
+/* No terminales */
+
+non terminal         listaSentencia, sentencia, elseSent; 
+non terminal String  exp, ifSent, whileSent, doSent, forSent;
+non terminal Tag     condicion;
+
+/* Precedencias */
+
+precedence right ASIG;
+precedence left OR;
+precedence left AND;
+precedence left EQ,NEQ,LT,LET,GT,GET;
+precedence left MAS,MENOS;
+precedence left MUL,DIV;
+precedence left UMENOS;
+precedence right NOT;
+precedence nonassoc IF;
+precedence nonassoc ELSE;
+
+/* Gramática */
+
+listaSentencia ::= sentencia 
+                 | listaSentencia sentencia
+                 ;
+
+sentencia ::= exp PYC
+            | ifSent:tag  AP condicion:c {: Generador.label(c.getV()); :} 
+              CP sentencia {: Generador.gotoLabel(tag); Generador.label(c.getF()); :} 
+              elseSent {: Generador.label(tag); :}
+            | whileSent:tag {: Generador.label(tag); :} AP condicion:c {: Generador.label(c.getV()); :}
+              CP sentencia  {: Generador.gotoLabel(tag); Generador.label(c.getF()); :}
+            | doSent:tag  {: Generador.label(tag); :} sentencia WHILE AP 
+              condicion:c {: Generador.label(c.getV()); Generador.gotoLabel(tag); Generador.label(c.getF()); :} CP PYC
+            | forSent:tag AP exp:e1 PYC {: Generador.label(tag); :} condicion:c 
+              PYC {: RESULT = Generador.newLabel(); Generador.label(RESULT.toString()); :}
+              exp:e2 CP {: Generador.gotoLabel(tag); Generador.label(c.getV()); :}
+              sentencia {: Generador.gotoLabel(RESULT.toString()); Generador.label(c.getF()); :}
+            | PRINT AP exp:e CP PYC {: RESULT = Generador.print(e); :}
+            | ALL listaSentencia CLL
+            ;
+
+exp ::= exp:e1 MAS exp:e2   {: RESULT = Generador.operacion(e1 + " + " + e2); :}
+      | exp:e1 MENOS exp:e2 {: RESULT = Generador.operacion(e1 + " - " + e2); :}
+      | exp:e1 MUL exp:e2   {: RESULT = Generador.operacion(e1 + " * " + e2); :}
+      | exp:e1 DIV exp:e2   {: RESULT = Generador.operacion(e1 + " / " + e2); :}
+      | MENOS exp:e         {: RESULT = Generador.operacion("-" + e); :} %prec UMENOS
+      | AP exp:e CP         {: RESULT = e; :}
+      | IDENT:id ASIG exp:e {: RESULT = Generador.asignacion(id,e); :}
+      | IDENT:id            {: RESULT = id; :}
+      | NUMERO:n            {: RESULT = n;  :}
+      ;
+
+ifSent ::= IF {: RESULT = Generador.newLabel(); :}
+         ;
+
+elseSent ::= ELSE sentencia
+           |
+           ;
+
+whileSent ::= WHILE {: RESULT = Generador.newLabel(); :}
+            ;
+
+doSent ::= DO {: RESULT = Generador.newLabel(); :}
+         ;
+
+forSent ::= FOR {: RESULT = Generador.newLabel(); :}
+          ;
+
+condicion ::= exp:e1 LT exp:e2   {: RESULT = Generador.condicion(Generador.LT, e1, e2);  :}
+             | exp:e1 LET exp:e2 {: RESULT = Generador.condicion(Generador.LET, e1, e2); :}
+             | exp:e1 GT exp:e2  {: RESULT = Generador.condicion(Generador.GT, e1, e2);  :}
+             | exp:e1 GET exp:e2 {: RESULT = Generador.condicion(Generador.GET, e1, e2); :}
+             | exp:e1 EQ exp:e2  {: RESULT = Generador.condicion(Generador.EQ, e1, e2);  :}
+             | exp:e1 NEQ exp:e2 {: RESULT = Generador.condicion(Generador.NEQ, e1, e2); :}
+             | NOT condicion:c   {: RESULT = Generador.operador(Generador.NOT,c,null);   :}
+             | condicion:c1 AND  {: Generador.label(c1.getV()); :} 
+               condicion:c2      {: RESULT = Generador.operador(Generador.AND,c1,c2); :}
+             | condicion:c1 OR   {: Generador.label(c1.getF()); :}
+               condicion:c2      {: RESULT = Generador.operador(Generador.OR,c1,c2);  :}
+             | AP condicion:c CP {: RESULT = c; :} 
+             ;
